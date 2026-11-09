@@ -1,0 +1,378 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al Madina Zamzam - Pharmacy Management System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2e7d32;
+            color: white;
+            padding: 20px;
+        }
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .sidebar ul {
+            list-style: none;
+        }
+        .sidebar ul li {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .sidebar ul li:hover, .sidebar ul li.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .card h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .card p {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+        }
+        /* Form & Table Styles */
+        .form-container, .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+        .btn {
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background-color: #1b5e20;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        table th {
+            background-color: #2e7d32;
+            color: white;
+        }
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-bill, #printable-bill * {
+                visibility: visible;
+            }
+            #printable-bill {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>🏥 Zamzam Pharmacy</h2>
+        <ul>
+            <li onclick="switchSection('dashboard', this)" class="active">🏠 Dashboard</li>
+            <li onclick="switchSection('inventory', this)">💊 Inventory & Expiry</li>
+            <li onclick="switchSection('billing', this)">🛒 Billing & Print</li>
+            <li onclick="logout()">🚪 Logout</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        
+        <!-- DASHBOARD SECTION -->
+        <div id="dashboard" class="section active">
+            <div class="header">
+                <h1>Welcome, Admin</h1>
+                <p>System is running smoothly</p>
+            </div>
+            <div class="cards">
+                <div class="card">
+                    <h3>Total Medicines</h3>
+                    <p id="totalMedicinesCount">0</p>
+                </div>
+                <div class="card">
+                    <h3>Today's Sales</h3>
+                    <p>Rs. 45,000</p>
+                </div>
+                <div class="card">
+                    <h3>Low Stock Items</h3>
+                    <p>4</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- INVENTORY SECTION -->
+        <div id="inventory" class="section">
+            <div class="header">
+                <h1>Medicine Inventory & Expiry Management</h1>
+            </div>
+            <div class="form-container">
+                <h3>Add New Medicine</h3>
+                <br>
+                <div class="form-group">
+                    <label>Medicine Name</label>
+                    <input type="text" id="medName" placeholder="Enter medicine name">
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="medQty" placeholder="Enter quantity">
+                </div>
+                <div class="form-group">
+                    <label>Price (Rs.)</label>
+                    <input type="number" id="medPrice" placeholder="Enter price">
+                </div>
+                <div class="form-group">
+                    <label>Expiry Date</label>
+                    <input type="date" id="medExpiry">
+                </div>
+                <button class="btn" onclick="addMedicine()">Add Medicine</button>
+            </div>
+
+            <div class="table-container">
+                <h3>Medicine Stock List</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Medicine Name</th>
+                            <th>Quantity</th>
+                            <th>Price (Rs.)</th>
+                            <th>Expiry Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- BILLING SECTION -->
+        <div id="billing" class="section">
+            <div class="header">
+                <h1>Billing & Printed Invoice</h1>
+            </div>
+            <div class="form-container">
+                <h3>Create Customer Bill</h3>
+                <br>
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="custName" placeholder="Customer Name">
+                </div>
+                <div class="form-group">
+                    <label>Medicine Name</label>
+                    <input type="text" id="billMedName" placeholder="Medicine Name">
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="billQty" placeholder="Quantity">
+                </div>
+                <div class="form-group">
+                    <label>Total Amount (Rs.)</label>
+                    <input type="number" id="billAmount" placeholder="Total Amount">
+                </div>
+                <button class="btn" onclick="generateBill()">Print Bill</button>
+            </div>
+
+            <!-- Printable Bill Area -->
+            <div id="printable-bill" class="form-container" style="display:none; border: 2px dashed #2e7d32;">
+                <h2 style="text-align: center; color: #2e7d32;">Al Madina Zamzam Pharmacy</h2>
+                <p style="text-align: center; color: #666;">Official Cash Receipt / Invoice</p>
+                <hr style="margin: 15px 0;">
+                <p><strong>Date:</strong> <span id="printDate"></span></p>
+                <p><strong>Customer Name:</strong> <span id="printCust"></span></p>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="printMed"></td>
+                            <td id="printQty"></td>
+                            <td id="printTotal"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
+                <p style="text-align: right;"><strong>Authorized Signature: ___</strong></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Demo Medicines Pre-loaded
+        let medicines = [
+            { name: "Panadol Tablet", qty: "150", price: "30", expiry: "2027-06-15" },
+            { name: "Augmentin 625mg", qty: "45", price: "550", expiry: "2026-12-10" },
+            { name: "Brufen Syrup", qty: "30", price: "120", expiry: "2028-03-20" },
+            { name: "Disprin", qty: "200", price: "20", expiry: "2027-09-05" }
+        ];
+
+        // Load demo data when page opens
+        window.onload = function() {
+            updateInventoryTable();
+        };
+
+        function switchSection(sectionId, element) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+
+            document.querySelectorAll('.sidebar ul li').forEach(li => li.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function addMedicine() {
+            const name = document.getElementById('medName').value;
+            const qty = document.getElementById('medQty').value;
+            const price = document.getElementById('medPrice').value;
+            const expiry = document.getElementById('medExpiry').value;
+
+            if(!name || !qty || !price || !expiry) {
+                alert("Please fill all fields!");
+                return;
+            }
+
+            medicines.push({ name, qty, price, expiry });
+            updateInventoryTable();
+            
+            document.getElementById('medName').value = '';
+            document.getElementById('medQty').value = '';
+            document.getElementById('medPrice').value = '';
+            document.getElementById('medExpiry').value = '';
+            alert("Medicine added successfully!");
+        }
+
+        function updateInventoryTable() {
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = '';
+            medicines.forEach(med => {
+                tbody.innerHTML += `<tr>
+                    <td>${med.name}</td>
+                    <td>${med.qty}</td>
+                    <td>${med.price}</td>
+                    <td>${med.expiry}</td>
+                </tr>`;
+            });
+            document.getElementById('totalMedicinesCount').innerText = medicines.length;
+        }
+
+        function generateBill() {
+            const cust = document.getElementById('custName').value;
+            const med = document.getElementById('billMedName').value;
+            const qty = document.getElementById('billQty.value') || document.getElementById('billQty').value;
+            const amount = document.getElementById('billAmount').value;
+
+            if(!cust || !med || !qty || !amount) {
+                alert("Please fill all billing details!");
+                return;
+            }
+
+            document.getElementById('printCust').innerText = cust;
+            document.getElementById('printMed').innerText = med;
+            document.getElementById('printQty').innerText = qty;
+            document.getElementById('printTotal').innerText = "Rs. " + amount;
+            document.getElementById('printDate').innerText = new Date().toLocaleDateString();
+
+            document.getElementById('printable-bill').style.display = 'block';
+            window.print();
+        }
+
+        function logout() {
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+</html>
